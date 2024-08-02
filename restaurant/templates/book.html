@@ -54,8 +54,6 @@
   console.log(document.getElementById("reservation_date").value);
   getBookings();
 
-  /*  Step 10: Part two */
-
   document
     .getElementById("reservation_date")
     .addEventListener("change", function () {
@@ -72,8 +70,6 @@
       .then((data) => {
         reserved_slots = [];
         bookings = "";
-
-        /* Step 11: Part three */
         let item = "";
         for (item of data) {
           console.log(item.fields);
@@ -83,8 +79,6 @@
             item.fields.reservation_slot
           )}</p>`;
         }
-
-        /* Step 12: Part four  */
 
         slot_options = '<option value="0" disabled>Select time</option>';
 

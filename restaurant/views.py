@@ -1,16 +1,20 @@
-# from django.http import HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import render
 from .forms import BookingForm
-from .models import Menu
+from .models import Menu, Booking
 from django.core import serializers
 from .models import Booking
 from datetime import datetime
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from .serializers import MenuItemSerializer, BookingSerializer
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status
 
 
-# Create your views here.
 def home(request):
     return render(request, 'index.html')
 
@@ -32,12 +36,17 @@ def book(request):
     context = {'form':form}
     return render(request, 'book.html', context)
 
-# Add your code here to create new views
 def menu(request):
     menu_data = Menu.objects.all()
     main_data = {"menu": menu_data}
     return render(request, 'menu.html', {"menu": main_data})
+class MenuItemsView(generics.ListCreateAPIView):
+    queryset = Menu.objects.all()
+    serializer_class = MenuItemSerializer
 
+class SingleMenuItemView(generics.RetrieveUpdateAPIView, generics.DestroyAPIView):
+    queryset = Menu.objects.all()
+    serializer_class = MenuItemSerializer
 
 def display_menu_item(request, pk=None): 
     if pk: 
@@ -68,3 +77,30 @@ def bookings(request):
     booking_json = serializers.serialize('json', bookings)
 
     return HttpResponse(booking_json, content_type='application/json')
+
+class BookingsView(generics.ListCreateAPIView, generics.DestroyAPIView):
+    queryset = Booking.objects.all()
+    serializer_class = BookingSerializer
+
+    def get_permissions(self):
+        permission_classes = [IsAuthenticated or IsAdminUser]
+        return[permission() for permission in permission_classes]
+    
+    def post(self, request):
+        data = request.data
+
+        booking = Booking.objects.create(
+        first_name=data['first_name'],
+        reservation_date=data['reservation_date'],
+        reservation_slot=data['reservation_slot'],
+        )
+
+        serializer = BookingSerializer(booking)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    def delete(self, request):
+        booking = Booking.objects.filter(id = request.data['id'])
+        booking.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
