@@ -14,6 +14,8 @@ DELETE calls to /api/bookings body in json format example:
     "id": 5
 }
 
+to run a unit test run "python manage.py test"
+
 superuser credentials
     username: superuser
     email: super@user.com
